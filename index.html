@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,21 +8,20 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #af0101; 
+      background-color: #af0101; /* Verde escuro */
     }
-    
+
     canvas {
-      background-color: #2dfc2d; 
+      background-color: #006400; /* Cor de fundo verde mais forte */
       display: block;
       margin: 0 auto;
     }
 
     #score {
       position: absolute;
-      top: 50%;
+      top: 10px;
       left: 10px;
-      transform: translateY(-50%);
-      color: #000000;
+      color: #ffffff; /* Cor do texto do score */
       font-size: 24px;
     }
 
@@ -38,40 +38,45 @@
     }
 
     #gameOverMessage h1 {
-      color: #ff0000;
+      color: #ff0000; /* Cor do texto de "Game Over" */
       margin: 0;
       margin-bottom: 10px;
     }
 
     #gameOverButton {
-      background-color: #6d5959;
-      color: #000;
+      background-color: #6d5959; /* Cor do botão de recomeçar */
+      color: #ffffff; /* Cor do texto do botão de recomeçar */
       border: none;
       padding: 10px 20px;
       border-radius: 5px;
       cursor: pointer;
     }
-    /*  colisao */
+
+    /* Efeito de shake */
+    .shake {
+      animation: shake 0.5s linear;
+    }
+
     @keyframes shake {
-  0% { transform: translate(0); }
-  10% { transform: translate(-5px, 5px); }
-  20% { transform: translate(-5px, -5px); }
-  30% { transform: translate(5px, -5px); }
-  40% { transform: translate(5px, 5px); }
-  50% { transform: translate(-5px, 5px); }
-  60% { transform: translate(-5px, -5px); }
-  70% { transform: translate(5px, -5px); }
-  80% { transform: translate(5px, 5px); }
-  90% { transform: translate(-5px, 5px); }
-  100% { transform: translate(0); }
-}
+      10%, 90% {
+        transform: translate(-5px, 0);
+      }
+      
+      20%, 80% {
+        transform: translate(5px, 0);
+      }
 
-.shake {
-  animation: shake 0.5s;
-}
+      30%, 50%, 70% {
+        transform: translate(-10px, 0);
+      }
 
+      40%, 60% {
+        transform: translate(10px, 0);
+      }
+    }
   </style>
 </head>
+
 <body>
   <canvas id="snakeCanvas" width="600" height="600"></canvas>
 
@@ -80,7 +85,7 @@
     <h1>Game Over</h1>
     <button id="gameOverButton">Recomeçar</button>
   </div>
-  
+
   <script>
     // Configuração inicial
     const canvas = document.getElementById("snakeCanvas");
@@ -99,7 +104,7 @@
 
     // Função para desenhar o canvas
     function drawCanvas() {
-      context.fillStyle = "   #2dfc2d "; // cor de fundo de onde a cobrinha se mexe
+      context.fillStyle = "black";
       context.fillRect(0, 0, canvasSize, canvasSize);
     }
 
@@ -114,42 +119,20 @@
     }
 
     // Função para desenhar a comida
-
-function drawFood() {
-  // Desenhar sombreamento da maçã (mesmo código anterior)
-
-  // Desenhar o corpo da maçã
-  context.fillStyle = "red";
-  context.beginPath();
-  context.arc(food.x + box / 2, food.y + box / 2, box / 2, 0, 2 * Math.PI);
-  context.fill();
-
-  // Desenhar brilho da maçã
-  context.fillStyle = "rgba(255, 255, 255, 0.4)";
-  context.beginPath();
-  context.ellipse(
-    food.x + box / 2, food.y + box / 2,
-    box / 3, box / 5, 0, 0, 2 * Math.PI
-  );
-  context.fill();
-
-  // Desenhar o "cabinho" da maçã (mesmo código anterior)
-}
+    function drawFood() {
+      context.fillStyle = "red";
+      context.fillRect(food.x, food.y, box, box);
+    }
 
     // Função para verificar colisões
     function collisionCheck(head, array) {
-  for (let i = 0; i < array.length; i++) {
-    if (head.x === array[i].x && head.y === array[i].y) {
-      document.body.classList.add("shake"); // Aplica a classe .shake ao body
-      setTimeout(function() {
-        document.body.classList.remove("shake"); // Remove a classe .shake após 0.5 segundos
-      }, 500);
-      return true;
+      for (let i = 0; i < array.length; i++) {
+        if (head.x === array[i].x && head.y === array[i].y) {
+          return true;
+        }
+      }
+      return false;
     }
-  }
-  return false;
-}
-
 
     // Função para atualizar o score
     function updateScore() {
@@ -166,6 +149,14 @@ function drawFood() {
       draw();
       document.getElementById("gameOverMessage").style.display = "none";
       startGame();
+    }
+
+    // Função para fazer a tela tremer
+    function shakeScreen() {
+      canvas.classList.add("shake");
+      setTimeout(function () {
+        canvas.classList.remove("shake");
+      }, 500);
     }
 
     // Função principal de desenho
@@ -189,6 +180,7 @@ function drawFood() {
       ) {
         clearInterval(game);
         document.getElementById("gameOverMessage").style.display = "block";
+        shakeScreen();
         return;
       }
       snake.unshift(newHead);
@@ -230,26 +222,37 @@ function drawFood() {
         direction !== "down"
       ) {
         direction = "down";
-      } else if (event.keyCode === 13) { // Verificar se a tecla pressionada é Enter
-        restartGame(); // Chamar a função para reiniciar o jogo
       }
     }
 
-    // Iniciar o jogo
+    // Função para iniciar o jogo
     function startGame() {
-      game = setInterval(draw, 200);
+      game = setInterval(draw, 100);
     }
 
-    // Adicionar evento de clique no botão de reiniciar
-    document.getElementById("gameOverButton").addEventListener("click", function () {
-      restartGame();
-    });
-
-    // Adicionar evento de escuta para as teclas de direção
+    // Evento para capturar as teclas de direção
     document.addEventListener("keydown", changeDirection);
+
+
+
+//não funciona o botão enter vê com o professor o porquê.
+//vê se eu fiz certo ou não
+
+   // Adicionar evento de escuta para as teclas de direção
+document.addEventListener("keydown", function(event) { // keydown teoricamente  é um evento de escuta que quando é acionado quando uma tecla é pressionada e mantida pressionada. (que no caso seria o enter)
+  if (event.keyCode === 13 && game === undefined) { // undefined pelo o que eu entendi é para verificar ou acessar uma variavel não declarada não sei \0/
+    // Verificar se a tecla pressionada é Enter e o jogo não está em andamento
+    restartGame();
+  } else {
+    changeDirection(event);
+  }
+});
+
+
 
     // Iniciar o jogo
     startGame();
   </script>
 </body>
+
 </html>
